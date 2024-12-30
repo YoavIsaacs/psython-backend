@@ -1,6 +1,7 @@
+import ast
 import tokenize
 from io import StringIO
-from typing import Dict
+from typing import Dict, Tuple, List
 import keyword
 
 class CustomKeywordParser:
@@ -67,4 +68,15 @@ class CustomKeywordParser:
         except Exception as e:
             raise Exception(f"Error translating code: {str(e)}")
 
+    def validate_custom_code(self, custom_code: str) -> Tuple[bool, List[str]]:
+        try:
+            python_code = self.translate_to_python(custom_code)
+            ast.parse(python_code)
+            return True, [] # If parsed correctly
 
+        except SyntaxError as e:
+            error_msg = str(e)
+            for python_kw, custom_kw in self.reverse_mapping.items()
+                error_msg.replace(python_kw, custom_kw)
+            return False, [str(e)]
+        
