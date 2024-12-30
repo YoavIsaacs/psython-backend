@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from app.schemas.config import KeywordConfig, EncodedConfig
 from app.core.interpreter import ConfigEncoder, KeywordValidator
 import logging
 
@@ -12,11 +12,6 @@ logger = logging.getLogger(__name__)
 def healthcheck() -> dict:
     return {"message": "Hello, world!"}
 
-class KeywordConfig(BaseModel):
-    keywords: dict
-
-class EncodedConfig(BaseModel):
-    code: str
 
 
 @endpoints.post("/encode")
