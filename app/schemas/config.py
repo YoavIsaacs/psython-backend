@@ -5,3 +5,7 @@ class KeywordConfig(BaseModel):
 
 class EncodedConfig(BaseModel):
     code: str
+
+class CodeExecutionRequest(BaseModel):
+    code: str
+    config: dict[str, str]

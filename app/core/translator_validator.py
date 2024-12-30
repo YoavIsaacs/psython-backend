@@ -16,7 +16,6 @@ class CustomKeywordParser:
         try:
             buffer = StringIO(custom_code)
             tokens = tokenize.generate_tokens(buffer.readline)
-
             translated_tokens = []
             token_stack = []
             for token in tokens:
@@ -34,10 +33,10 @@ class CustomKeywordParser:
                     if token_stack:
                         token_stack.pop()
 
-                if not token_stack and token.type == tokenize.NAME and token.string in self.keyword_mapping:
+                if not token_stack and token.type == tokenize.NAME and token.string in self.reverse_mapping:
                     translated_token = tokenize.TokenInfo(
                         type=token.type,
-                        string=self.keyword_mapping[token.string],
+                        string=self.reverse_mapping[token.string],
                         start=token.start,
                         end=token.end,
                         line=token.line
@@ -76,7 +75,7 @@ class CustomKeywordParser:
 
         except SyntaxError as e:
             error_msg = str(e)
-            for python_kw, custom_kw in self.reverse_mapping.items()
+            for python_kw, custom_kw in self.reverse_mapping.items():
                 error_msg.replace(python_kw, custom_kw)
             return False, [str(e)]
-        
+

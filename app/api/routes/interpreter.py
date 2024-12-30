@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from app.schemas.config import KeywordConfig, EncodedConfig
+
+from app.core.translator_validator import CustomKeywordParser
+from app.schemas.config import KeywordConfig, EncodedConfig, CodeExecutionRequest
 from app.core.interpreter import ConfigEncoder, KeywordValidator
 import logging
 
@@ -54,5 +56,35 @@ async def validate_keywords(config: KeywordConfig) -> dict:
         "message": "Configuration is valid"
     }
 
+@endpoints.post("/translate")
+async def translate_code(request: CodeExecutionRequest) -> dict:
+    logger.info(f"Received translation request with code length: {len(request.code)}")
+    try:
+        parser = CustomKeywordParser(request.config)
+        try:
+            translated_code = parser.translate_to_python(request.code)
+            logger.info(f"Translated code: {repr(translated_code)}")
+        except Exception as e:
+            logger.error(f"Translation error: {str(e)}")
+            return {
+                "success": False,
+                "errors": [f"Translation error: {str(e)}"]
+            }
+
+        is_valid , errors = parser.validate_custom_code(request.code)
+        if not is_valid:
+            return {
+                "success": False,
+                "errors": errors
+            }
+
+        translated_code = parser.translate_to_python(request.code)
+        return {
+            "success": True,
+            "translated_code": translated_code
+        }
+    except Exception as e:
+        logger.error(f"Error in code translation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
