@@ -1,7 +1,6 @@
 import tokenize
-import ast
 from io import StringIO
-from typing import Dict, List, Tuple
+from typing import Dict
 import keyword
 
 class CustomKeywordParser:
