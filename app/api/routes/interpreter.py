@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
+from app.core.docker_manager import DockerManager
 from app.core.translator_validator import CustomKeywordParser
 from app.schemas.config import KeywordConfig, EncodedConfig, CodeExecutionRequest
 from app.core.interpreter import ConfigEncoder, KeywordValidator
@@ -88,3 +89,19 @@ async def translate_code(request: CodeExecutionRequest) -> dict:
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@endpoints.post("/execute")
+async def execute_code(request: CodeExecutionRequest) -> dict:
+    logger.info(f"Received execution request for code of length: {len(request.code)}")
+
+    try:
+        parser = CustomKeywordParser(request.config)
+        python_code = parser.translate_to_python(request.code)
+
+        docker_manager = DockerManager()
+        result = docker_manager.execute_code(python_code)
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error executing code: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
