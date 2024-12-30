@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.core.interpreter import ConfigEncoder
+from app.core.interpreter import ConfigEncoder, KeywordValidator
 import logging
 
 endpoints = APIRouter()
@@ -40,3 +40,24 @@ def decode_config(code: EncodedConfig) -> dict:
     except Exception as e:
         logger.error(f"Error decoding config: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@endpoints.post("/validate_keywords")
+async def validate_keywords(config: KeywordConfig) -> dict:
+    logger.info(f"Validating keyword configuration: {config.keywords}")
+
+    validator = KeywordValidator()
+    is_valid, errors = validator.validate_mapping(config.keywords)
+
+    if not is_valid:
+        return {
+            "valid": False,
+            "errors": errors
+        }
+
+    return {
+        "valid": True,
+        "message": "Configuration is valid"
+    }
+
+
+

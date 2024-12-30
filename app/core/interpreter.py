@@ -2,6 +2,12 @@ import base64
 import zlib
 import json
 from typing import Dict
+import keyword
+import ast
+from typing import List, Dict, Tuple
+import builtins
+
+from pydantic.v1.utils import is_valid_field
 
 
 class ConfigEncoder:
@@ -56,3 +62,34 @@ class ConfigEncoder:
 
         except Exception as e:
             raise ValueError(f"Invalid configuration string: {str(e)}")
+
+class KeywordValidator:
+    def __init__(self):
+        self.python_words = set(keyword.kwlist)
+
+    def get_all_python_words(self) -> set[str]:
+        return self.python_words
+
+    @staticmethod
+    def validate_custom_keyword(word: str) -> tuple[bool, str]:
+        if not word.isidentifier():
+            return False, f"{word} is not a valid Python identifier"
+        return True, ""
+
+    def validate_mapping(self, mapping: dict[str, str]) -> tuple[bool, list[str]]:
+        errors = []
+        used_custom_words = set()
+
+        for original_word, custom_word in mapping.items():
+            if original_word not in self.python_words:
+                errors.append(f"{original_word} is not a Python keyword.")
+
+            is_valid, error = self.validate_custom_keyword(custom_word)
+            if not is_valid:
+                errors.append(error)
+
+            if custom_word in used_custom_words:
+                errors.append(f"{custom_word} is used multiple times as a custom keyword")
+            used_custom_words.add(custom_word)
+
+        return len(errors) == 0, errors
